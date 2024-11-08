@@ -66,8 +66,11 @@ python test.py
 ## Usage
 
 ### Dataset preparation
-Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S dataset](https://caer-dataset.github.io/).
+Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S dataset](https://caer-dataset.github.io/). 
 
+We provided the coco-format annotations for the project, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`. 
+
+We also provide preprocessing scripts so that you can generate custom coco-format annotations by yourself.
 
 ### Training
 
@@ -76,10 +79,11 @@ Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S d
 
 ## Citation
 ```
-@article{li2024two,
+@inproceedings{li2024two,
   title={Two in One Go: Single-stage Emotion Recognition with Decoupled Subject-context Transformer},
   author={Li, Xinpeng and Wang, Teng and Zhao, Jian and Mao, Shuyi and Wang, Jinbao and Zheng, Feng and Peng, Xiaojiang and Li, Xuelong},
-  journal={arXiv preprint arXiv:2404.17205},
+  booktitle={Proceedings of the 32nd ACM International Conference on Multimedia},
+  pages={9340--9349},
   year={2024}
 }
 ```
