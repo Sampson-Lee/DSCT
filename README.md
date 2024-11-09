@@ -68,9 +68,7 @@ python test.py
 ### Dataset
 Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S dataset](https://caer-dataset.github.io/). 
 
-We provided the coco-format annotations for the project, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`. 
-
-We also provide preprocessing scripts so that you can generate custom coco-format annotations by yourself.
+We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts.
 
 ### Running
 Please follow `run.sh` to conduct training, testing, or visualization. 
