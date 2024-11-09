@@ -1,2 +1,5 @@
 *.pptx
 *.pdf
+*.pyc
+*__pycache__
+*.o
