@@ -483,10 +483,6 @@ def build(args):
         num_classes = 7+1
     if args.dataset_file == 'emotic': 
         num_classes = 26+1
-    if args.dataset_file == 'sfew2': 
-        num_classes = 7+1
-    if args.dataset_file == 'heco': 
-        num_classes = 8+1
     if args.dataset_file == "coco_panoptic":
         num_classes = 250
         

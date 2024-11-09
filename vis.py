@@ -427,16 +427,12 @@ def get_args_parser():
     return parser
 
 caer_list = ['Anger', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
-sfew_list = ["Surprise", "Fear", "Disgust", "Happy", "Sad", "Angry", "Neutral"]
-heco_list = ["Surprise", "Fear", "Disgust", "Happiness", "Sadness", "Anger", "Peace", "Excitement"]
 emotic_list = ['Affection','Anger','Annoyance','Anticipation','Aversion','Confidence','Disapproval','Disconnection','Disquietment','Doubt/Confusion','Embarrassment','Engagement','Esteem','Excitement','Fatigue','Fear','Happiness','Pain','Peace','Pleasure','Sadness','Sensitivity','Suffering','Surprise','Sympathy','Yearning']
 
 feature_maps = None
 @torch.no_grad()
 def infer(dataset, model, postprocessors, device, args):
-    if args.dataset_file == 'heco': emo_list = heco_list
     if args.dataset_file == 'emotic': emo_list = emotic_list
-    if args.dataset_file == 'sfew2': emo_list = sfew_list
     if args.dataset_file == 'caer': emo_list = caer_list
     model.eval()
     duration = 0
