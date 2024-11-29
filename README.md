@@ -25,43 +25,42 @@ This project is released under the [Apache 2.0 license](./LICENSE).
 
 
 ## Installation
-The project is based on [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
+Please refer to the installation on [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
 
 ### Requirements
 
-* Linux, CUDA>=9.2, GCC>=5.4
-  
+* Linux, CUDA>=9.2, 5.4<=GCC<=9.3
 * Python>=3.7
+* PyTorch>=1.5.1, torchvision>=0.6.1
 
-    We recommend you to use Anaconda to create a conda environment:
-    ```bash
-    conda create -n deformable_detr python=3.7 pip
-    ```
-    Then, activate the environment:
-    ```bash
-    conda activate deformable_detr
-    ```
-  
-* PyTorch>=1.5.1, torchvision>=0.6.1 (following instructions [here](https://pytorch.org/))
-
-    For example, if your CUDA version is 9.2, you could install pytorch and torchvision as following:
-    ```bash
-    conda install pytorch=1.5.1 torchvision=0.6.1 cudatoolkit=9.2 -c pytorch
-    ```
-  
-* Other requirements
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-### Compiling CUDA operators
+### Reference Steps
+Create the environment:
+```bash
+conda create -n dsct python=3.10 pip
+```
+Activate the environment:
+```bash
+conda activate dsct 
+```
+Install pytorch following instructions [here](https://pytorch.org/):
+```bash
+pip install torch torchvision torchaudio
+pip install -r requirements.txt
+```
+Then, clone the repo:
+```bash
+git clone git@github.com:Sampson-Lee/DSCT.git
+```
+Compile CUDA operators:
 ```bash
 cd ./models/ops
 sh ./make.sh
-# unit test (should see all checking is True)
-python test.py
 ```
-
+Test operators (should see all checking is True):
+```bash
+python test.py
+```    
+  
 
 ## Usage
 
