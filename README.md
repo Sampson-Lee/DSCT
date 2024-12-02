@@ -59,7 +59,7 @@ Compile CUDA operators:
 cd ./models/ops
 sh ./make.sh
 ```
-After compiling, test the operators (should see all checking is True):
+After compiling, test the operators (should see all checking is True until CUDA is out of memory):
 ```bash
 python test.py
 ```    
