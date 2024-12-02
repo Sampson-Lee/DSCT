@@ -29,11 +29,17 @@ Please refer to the installation on [deformable_detr](https://github.com/fundame
 
 ### Requirements
 
-* Linux, CUDA>=9.2, 5.4<=GCC<=9.3
+* Linux, CUDA>=9.2, 5.4<=GCC<=9.5
 * Python>=3.7
 * PyTorch>=1.5.1, torchvision>=0.6.1
 
-### Reference Steps
+### Steps for Reference
+Clone the repo:
+```bash
+git clone git@github.com:Sampson-Lee/DSCT.git
+cd DSCT
+```
+
 Create the environment:
 ```bash
 conda create -n dsct python=3.10 pip
@@ -47,20 +53,16 @@ Install pytorch following instructions [here](https://pytorch.org/):
 pip install torch torchvision torchaudio
 pip install -r requirements.txt
 ```
-Then, clone the repo:
-```bash
-git clone git@github.com:Sampson-Lee/DSCT.git
-```
+
 Compile CUDA operators:
 ```bash
 cd ./models/ops
 sh ./make.sh
 ```
-Test operators (should see all checking is True):
+After compiling, test the operators (should see all checking is True):
 ```bash
 python test.py
 ```    
-  
 
 ## Usage
 
