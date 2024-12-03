@@ -116,7 +116,7 @@ class DeformableTransformer(nn.Module):
         valid_ratio = torch.stack([valid_ratio_w, valid_ratio_h], -1)
         return valid_ratio
 
-    def forward(self, srcs, masks, pos_embeds, query_embed=None, query_embeds_fetr=None):
+    def forward(self, srcs, masks, pos_embeds, query_embed=None, query_embeds_dsct=None):
         assert self.two_stage or query_embed is not None
 
         # prepare input for encoder
@@ -288,7 +288,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
 
-        # fuse fetr embeddings and context embeddings
+        # fuse dsct embeddings and context embeddings
         self.face_points = reference_points[:,300:,:,:]
         reference_samples = self.cross_attn.sampling_locations
         self.face_samples = reference_samples[:,300:,:,:,:,:]

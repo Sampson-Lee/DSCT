@@ -196,16 +196,6 @@ def main(args):
                 out = True
                 break
         return out
-
-    # # only open learnable part     
-    # for name, param in model.named_parameters():
-    #     param.requires_grad = False
-    # for name, param in model.named_parameters():
-    #     if "fetr" in name:
-    #         param.requires_grad = True  
-
-    # for n, p in model_without_ddp.named_parameters():
-    #     print(n, p.requires_grad)
     
     # embed()
     param_dicts = [

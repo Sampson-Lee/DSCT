@@ -296,7 +296,7 @@ def get_tsne(model, path):
     plt.scatter(X_tsne[300:, 0], X_tsne[300:, 1], c='red', marker='o')
 
     # context_queries = model.query_embed.weight.cpu().numpy()
-    # subject_queries = model.query_embed_fetr.weight.cpu().numpy()
+    # subject_queries = model.query_embed_dsct.weight.cpu().numpy()
     # X = np.concatenate((context_queries, subject_queries))
     # tsne = TSNE(n_components=2, random_state=0)
     # X_tsne = tsne.fit_transform(X[:,256:])

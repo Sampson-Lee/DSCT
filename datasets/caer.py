@@ -150,8 +150,8 @@ def build(image_set, args):
     assert root.exists(), f'provided Face path {root} does not exist'
     mode = 'instances'
     PATHS = {
-        "train": (args.data_path+"train/", './datasets/annotations/caer_train.json'),
-        "val": (args.data_path+"test/", './datasets/annotations/caer_test.json'),
+        "train": (args.data_path+"/train/", './datasets/annotations/caer_train.json'),
+        "val": (args.data_path+"/test/", './datasets/annotations/caer_test.json'),
     }
     img_folder, ann_file = PATHS[image_set]
     dataset = FaceDetection(img_folder, ann_file, transforms=make_face_transforms(image_set), return_masks=args.masks)

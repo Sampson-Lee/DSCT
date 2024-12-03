@@ -52,12 +52,12 @@ class DeformableDETR(nn.Module):
         self.transformer = transformer
         hidden_dim = transformer.d_model
         
-        self.class_embed_fetr = nn.Linear(hidden_dim, num_classes)
-        self.bbox_embed_fetr = MLP(hidden_dim, hidden_dim, 4, 3)
+        self.class_embed_dsct = nn.Linear(hidden_dim, num_classes)
+        self.bbox_embed_dsct = MLP(hidden_dim, hidden_dim, 4, 3)
 
         self.num_feature_levels = num_feature_levels
         self.query_embed = nn.Embedding(300, hidden_dim*2) # for context
-        self.query_embed_fetr = nn.Embedding(num_queries, hidden_dim*2) # one for reference, one for target
+        self.query_embed_dsct = nn.Embedding(num_queries, hidden_dim*2) # one for reference, one for target
         self.hs_all = None
 
         if num_feature_levels > 1:
@@ -89,19 +89,19 @@ class DeformableDETR(nn.Module):
 
         prior_prob = 0.01
         bias_value = -math.log((1 - prior_prob) / prior_prob)
-        self.class_embed_fetr.bias.data = torch.ones(num_classes) * bias_value
+        self.class_embed_dsct.bias.data = torch.ones(num_classes) * bias_value
         
-        nn.init.constant_(self.bbox_embed_fetr.layers[-1].weight.data, 0)
-        nn.init.constant_(self.bbox_embed_fetr.layers[-1].bias.data, 0)
+        nn.init.constant_(self.bbox_embed_dsct.layers[-1].weight.data, 0)
+        nn.init.constant_(self.bbox_embed_dsct.layers[-1].bias.data, 0)
         for proj in self.input_proj:
             nn.init.xavier_uniform_(proj[0].weight, gain=1)
             nn.init.constant_(proj[0].bias, 0)
 
         # if two-stage, the last class_embed and bbox_embed is for region proposal generation
         num_pred = (transformer.decoder.num_layers + 1) if two_stage else transformer.decoder.num_layers
-        nn.init.constant_(self.bbox_embed_fetr.layers[-1].bias.data[2:], -2.0)
-        self.class_embed_fetr = nn.ModuleList([self.class_embed_fetr for _ in range(num_pred)])
-        self.bbox_embed_fetr = nn.ModuleList([self.bbox_embed_fetr for _ in range(num_pred)])
+        nn.init.constant_(self.bbox_embed_dsct.layers[-1].bias.data[2:], -2.0)
+        self.class_embed_dsct = nn.ModuleList([self.class_embed_dsct for _ in range(num_pred)])
+        self.bbox_embed_dsct = nn.ModuleList([self.bbox_embed_dsct for _ in range(num_pred)])
         self.transformer.decoder.bbox_embed = None
 
     def forward(self, samples: NestedTensor):
@@ -144,11 +144,11 @@ class DeformableDETR(nn.Module):
                 masks.append(mask)
                 pos.append(pos_l)
 
-        query_embeds_fetr = None; query_embeds = None
+        query_embeds_dsct = None; query_embeds = None
         if not self.two_stage:
-            query_embeds_fetr = self.query_embed_fetr.weight
+            query_embeds_dsct = self.query_embed_dsct.weight
             query_embeds = self.query_embed.weight
-            query_embeds_con = torch.cat([query_embeds, query_embeds_fetr], dim=0)
+            query_embeds_con = torch.cat([query_embeds, query_embeds_dsct], dim=0)
         
         hs_all, init_reference_all, inter_references_all, enc_outputs_class, enc_outputs_coord_unact = self.transformer(srcs, masks, pos, query_embeds_con)
         self.hs_all = hs_all
@@ -163,8 +163,8 @@ class DeformableDETR(nn.Module):
             hs_subject = hs_all[lvl,:,300:,:]
         
             reference = inverse_sigmoid(reference[:,300:,:])
-            outputs_class = self.class_embed_fetr[lvl](hs_subject)
-            tmp = self.bbox_embed_fetr[lvl](hs_subject)
+            outputs_class = self.class_embed_dsct[lvl](hs_subject)
+            tmp = self.bbox_embed_dsct[lvl](hs_subject)
             if reference.shape[-1] == 4:
                 tmp += reference
             else:
@@ -221,7 +221,7 @@ class SetCriterion(nn.Module):
         self.eos_coef = eos_coef
         self.binary_flag = binary_flag
 
-        empty_weight = torch.ones(self.num_classes + 1)
+        empty_weight = torch.ones(self.num_classes)
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
@@ -246,17 +246,18 @@ class SetCriterion(nn.Module):
                 src_idx = idx[1][i]
                 target_classes_onehot[bs_idx, src_idx, :26] = target_classes[i]
                 target_classes_onehot[bs_idx, src_idx, 26] = 1 # for subject
-            
-            loss_em = sigmoid_focal_loss(src_logits[:,:,:-1], target_classes_onehot[:,:,:-1], num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
-            
-            loss_ce = sigmoid_focal_loss(src_logits[:,:,-1].unsqueeze(-1), target_classes_onehot[:,:,-1].unsqueeze(-1), num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
 
             # loss_ce = F.binary_cross_entropy_with_logits(src_logits, target_classes_onehot)
+            
+            loss_ce = sigmoid_focal_loss(src_logits, target_classes_onehot, num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
+
         else:
             target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
             target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
             target_classes[idx] = target_classes_o
+            
             # loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
+            
             target_classes_onehot = torch.zeros([src_logits.shape[0], src_logits.shape[1], src_logits.shape[2] + 1],
                                                 dtype=src_logits.dtype, layout=src_logits.layout, device=src_logits.device)
             target_classes_onehot.scatter_(2, target_classes.unsqueeze(-1), 1)
@@ -264,7 +265,7 @@ class SetCriterion(nn.Module):
             target_classes_onehot = target_classes_onehot[:,:,:-1]
             loss_ce = sigmoid_focal_loss(src_logits, target_classes_onehot, num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
 
-        losses = {'loss_ce': loss_ce, 'loss_em': loss_em}
+        losses = {'loss_ce': loss_ce}
 
         if log:
             # TODO this should probably be a separate loss, not hacked in this one here
