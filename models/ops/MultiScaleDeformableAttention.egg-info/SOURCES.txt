@@ -1,7 +1,7 @@
 setup.py
-/home/xinpeng/FETR/models/ops/src/vision.cpp
-/home/xinpeng/FETR/models/ops/src/cpu/ms_deform_attn_cpu.cpp
-/home/xinpeng/FETR/models/ops/src/cuda/ms_deform_attn_cuda.cu
+/home/lxp/DSCT/models/ops/src/vision.cpp
+/home/lxp/DSCT/models/ops/src/cpu/ms_deform_attn_cpu.cpp
+/home/lxp/DSCT/models/ops/src/cuda/ms_deform_attn_cuda.cu
 MultiScaleDeformableAttention.egg-info/PKG-INFO
 MultiScaleDeformableAttention.egg-info/SOURCES.txt
 MultiScaleDeformableAttention.egg-info/dependency_links.txt
@@ -10,3 +10,4 @@ functions/__init__.py
 functions/ms_deform_attn_func.py
 modules/__init__.py
 modules/ms_deform_attn.py
+modules/ms_deform_attn_ctx.py
