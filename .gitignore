@@ -4,3 +4,5 @@
 *__pycache__
 *.o
 *.pth
+*/build/*
+*/dist/*
