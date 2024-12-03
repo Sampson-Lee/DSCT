@@ -72,9 +72,9 @@ Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S d
 We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts.
 
 ### Running
-Please follow `run.sh` to conduct training, testing, or visualization. 
+Please place the [pretrained weights of deformable detr](https://drive.google.com/file/d/1nDWZWHuRwtwGden77NLM9JoWe-YisJnA/view?usp=sharing) in the directory.
 
-We provided the latest pre-trained weights [here]() for your convenience.
+Then, follow `run.sh` to conduct training, testing, or visualization. 
 
 
 ## Citation

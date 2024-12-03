@@ -43,7 +43,7 @@
 #         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
 
 # caer-s training scripts
-YOUR_DATA_PATH=./
+YOUR_DATA_PATH=/home/lxp/data
 CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
         --nproc_per_node=1 \
         --master_port=29507 \
