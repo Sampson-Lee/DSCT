@@ -2,3 +2,5 @@ pycocotools
 tqdm
 cython
 scipy
+ipython
+scikit-learn
