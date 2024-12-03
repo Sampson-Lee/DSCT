@@ -157,7 +157,6 @@ def build(image_set, args):
     dataset = FaceDetection(img_folder, ann_file, transforms=make_face_transforms(image_set), return_masks=args.masks)
     return dataset
 
-
 if __name__ == "__main__":
     from IPython import embed
     from torch.utils.data import DataLoader

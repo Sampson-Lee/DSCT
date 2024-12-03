@@ -59,3 +59,17 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
         --epochs=50 \
         --lr_drop=40 \
         --num_queries=4; \
+
+YOUR_DATA_PATH=./
+YOUR_MODEL_PATH=./
+CUDA_VISIBLE_DEVICES=1 python test.py \
+        --backbone=$n \
+        --dataset_file=caer \
+        --detr=deformable_detr_dsct \
+        --model=deformable_transformer_dsct \
+        --num_queries=4 \
+        --binary_flag=0 \
+        --data_path=$YOUR_DATA_PATH/CAER_S/test \
+        --json_path=$YOUR_DATA_PATH/CAER_S/test.json \
+        --resume=$YOUR_MODEL_PATH/checkpoint.pth;
+done
