@@ -157,8 +157,8 @@ def build(image_set, args):
     assert root.exists(), f'provided Face path {root} does not exist'
     mode = 'instances'
     PATHS = {
-        "train": ("/data1/xinpeng/EMOTIC/images", '/data1/xinpeng/EMOTIC/annotations/train_bi.json'),
-        "val": ("/data1/xinpeng/EMOTIC/images", '/data1/xinpeng/EMOTIC/annotations/val_bi.json'),
+        "train": (args.data_path+"/images", './datasets/annotations/emotic_train_bi.json'),
+        "val": (args.data_path+"/images", './datasets/annotations/emotic_val_bi.json'),
     }
 
     img_folder, ann_file = PATHS[image_set]
