@@ -19,6 +19,8 @@ from torch.nn.init import xavier_uniform_, constant_, uniform_, normal_
 from util.misc import inverse_sigmoid
 from models.ops.modules import MSDeformAttn
 
+from IPython import embed
+
 class DeformableTransformer(nn.Module):
     def __init__(self, d_model=256, nhead=8,
                  num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=1024, dropout=0.1,
@@ -298,35 +300,37 @@ class DeformableTransformerDecoderLayer(nn.Module):
         hs_context = tgt[:,:300,:]; hs_subject = tgt[:,300:,:]
 
         # spatial relation
-        d_sp = torch.cdist(reference_points[:,300:,0,:], reference_points[:,:300,0,:], p=2)
-        idx_sp = torch.argsort(d_sp, dim=-1, descending=False)
-        n_query, n_sub, n_ctx = idx_sp.shape; _, _, n_dim = hs_context.shape
-        hs_context_spatial = hs_context.unsqueeze(1).expand(n_query, n_sub, n_ctx, n_dim)
-        idx_sp = idx_sp.unsqueeze(-1).expand(n_query, n_sub, n_ctx, n_dim)
-        hs_context_spatial = torch.gather(hs_context_spatial, 2, idx_sp) # n_query, n_sub, n_ctx, n_dim
+        d_sp = torch.cdist(reference_points[:,300:,0,:], reference_points[:,:300,0,:], p=2) # n_bs, n_sub, n_ctx
+        idx_sp = torch.argsort(d_sp, dim=-1, descending=False) # n_bs, n_sub, n_ctx
+        n_bs, n_sub, n_ctx = idx_sp.shape; _, _, n_dim = hs_context.shape
+        hs_context_spatial = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim) # n_bs, n_sub, n_ctx, n_dim
+        idx_sp_ex = idx_sp.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)
+        hs_context_spatial = torch.gather(hs_context_spatial, 2, idx_sp_ex) # n_bs, n_sub, n_ctx, n_dim
         hs_context_spatial = hs_context_spatial[:,:,:100,:]
 
         # semantic relation
         d_se = hs_subject@hs_context.permute(0,2,1)
         idx_se = torch.argsort(d_se, dim=-1, descending=True)
-        n_query, n_sub, n_ctx = idx_se.shape; _, _, n_dim = hs_context.shape
-        hs_context_semantic = hs_context.unsqueeze(1).expand(n_query, n_sub, n_ctx, n_dim)
-        idx_se = idx_se.unsqueeze(-1).expand(n_query, n_sub, n_ctx, n_dim)        
-        hs_context_semantic = torch.gather(hs_context_semantic, 2, idx_se)
+        n_bs, n_sub, n_ctx = idx_se.shape; _, _, n_dim = hs_context.shape
+        hs_context_semantic = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim)
+        idx_se_ex = idx_se.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)        
+        hs_context_semantic = torch.gather(hs_context_semantic, 2, idx_se_ex)
         hs_context_semantic = hs_context_semantic[:,:,:50,:]
 
         # relevance fusion
-        w_spatial = F.softmax(hs_subject.unsqueeze(-2)@hs_context_spatial.permute(0,1,3,2), dim=-1) # n_query, n_sub, n_ctx
-        w_semantic = F.softmax(hs_subject.unsqueeze(-2)@hs_context_semantic.permute(0,1,3,2), dim=-1) # n_query, n_sub, n_ctx
-        w_subject = F.softmax(hs_subject@hs_subject.permute(0,2,1), dim=-1) # n_query, n_sub, n_sub
-        
+        w_spatial = F.softmax(hs_subject.unsqueeze(-2)@hs_context_spatial.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
+        w_semantic = F.softmax(hs_subject.unsqueeze(-2)@hs_context_semantic.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
+        w_subject = F.softmax(hs_subject@hs_subject.permute(0,2,1), dim=-1) # n_bs, n_sub, n_sub
+
         hs_subject = hs_subject + (w_spatial@hs_context_spatial).squeeze(2) + (w_semantic@hs_context_semantic).squeeze(2) + w_subject@hs_subject
 
         tgt = torch.cat([hs_context, hs_subject], dim=1)
         
         self.relevance_values = w_spatial
-        self.context_points_sp = torch.gather(reference_points[:,:300,:,:], 1, idx_sp.permute(0,2,1,3)[:,:,:,:2])
-        self.context_points_se = torch.gather(reference_points[:,:300,:,:], 1, idx_se.permute(0,2,1,3)[:,:,:,:2])
+        idx_sp_m = torch.argsort(d_sp.mean(1), dim=-1, descending=False)
+        self.context_points_sp = torch.gather(reference_points[:,:300,0,:], 1, idx_sp_m.unsqueeze(-1).expand(-1, -1, 2))
+        idx_se_m = torch.argsort(d_se.mean(1), dim=-1, descending=False)
+        self.context_points_se = torch.gather(reference_points[:,:300,0,:], 1, idx_se_m.unsqueeze(-1).expand(-1, -1, 2))
 
         # ffn
         tgt = self.forward_ffn(tgt)
