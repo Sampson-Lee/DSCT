@@ -66,7 +66,7 @@ Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S d
 
 We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts in `./datasets`.
 
-Ensure your directory tree follows this structure:
+Ensure your dataset directory tree follows this structure:
 ```
 emotic
 └── images
@@ -128,6 +128,8 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 ```
 
 ## Citation
+If you find this project is helpful, please cite our paper and star our reposity.
+
 ```
 @inproceedings{li2024two,
   title={Two in One Go: Single-stage Emotion Recognition with Decoupled Subject-context Transformer},
