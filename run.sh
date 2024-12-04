@@ -22,10 +22,10 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 # CUDA_VISIBLE_DEVICES=1 python test.py \
 #         --dataset_file=emotic \
 #         --detr=deformable_detr_dsct \
-#         --model=deformable_transformer \
+#         --model=deformable_transformer_dsct \
 #         --num_queries=4 \
 #         --binary_flag=1 \
-#         --data_path=$YOUR_DATA_PATH/EMOTIC/images/ \
+#         --data_path=$YOUR_DATA_PATH \
 #         --json_path=./datasets/annotations/emotic_test_bi.json \
 #         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
 
@@ -36,10 +36,10 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --dataset_file=emotic \
 #         --num_queries=4 \
 #         --binary_flag=1 \
-#         --model=deformable_transformer \
+#         --model=deformable_transformer_dsct \
 #         --detr=deformable_detr_dsct \
-#         --data_path=$YOUR_DATA_PATH/EMOTIC/images/ \
-#         --json_path=./datasets/annotations/test_bi.json \
+#         --data_path=$YOUR_DATA_PATH \
+#         --json_path=./datasets/annotations/emotic_test_bi.json \
 #         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
 
 # # caer-s training scripts
@@ -58,7 +58,7 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --output_dir=$YOUR_DATA_PATH/checkpoints \
 #         --epochs=50 \
 #         --lr_drop=40 \
-#         --num_queries=4; \
+#         --num_queries=9; \
 
 # # caer-s testing scripts
 # YOUR_DATA_PATH=./
@@ -67,7 +67,7 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --dataset_file=caer \
 #         --detr=deformable_detr_dsct \
 #         --model=deformable_transformer_dsct \
-#         --num_queries=4 \
+#         --num_queries=9 \
 #         --binary_flag=0 \
 #         --data_path=$YOUR_DATA_PATH/test \
 #         --json_path=./datasets/annotations/caer_test.json \
@@ -79,7 +79,8 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 # YOUR_MODEL_PATH=./
 # CUDA_VISIBLE_DEVICES=1 python vis.py \
 #         --dataset_file=caer \
-#         --num_queries=4 \
+#         --binary_flag=0 \
+#         --num_queries=9 \
 #         --model=deformable_transformer_dsct \
 #         --detr=deformable_detr_dsct \
 #         --data_path=$YOUR_DATA_PATH/test \

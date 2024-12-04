@@ -71,6 +71,42 @@ Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S d
 
 We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts.
 
+We expect a directory tree like
+```
+emotic
+└── images
+    ├── ade20k
+    │   └── images
+    │        ├── xxx.jpg
+    ├── framesdb
+    │   └── images
+    │        ├── xxx.jpg
+    ├── mscoco
+    │   └── images
+    │        ├── xxx.jpg
+    └── emodb_small
+        └── images
+             ├── xxx.jpg
+caer
+├── train
+│   ├── Anger
+│   │   ├── xxx.jpg
+│   ├── Disgust
+│   ├── Fear
+│   ├── Happy
+│   ├── Neutral
+│   ├── Sad
+│   └── Surprise
+└── test
+    ├── Anger
+    ├── Disgust
+    ├── Fear
+    ├── Happy
+    ├── Neutral
+    ├── Sad
+    └── Surprise                        
+```
+
 ### Running
 Please place the [pretrained weights of deformable detr](https://drive.google.com/file/d/1nDWZWHuRwtwGden77NLM9JoWe-YisJnA/view?usp=sharing) in the directory.
 
