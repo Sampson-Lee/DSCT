@@ -1,7 +1,7 @@
 # DSCT
 By Xinpeng Li, Teng Wang, Jian Zhao, Shuyi Mao, Jinbao Wang, Feng Zheng, Xiaojiang Peng†, Xuelong Li†
 
-This repository is an official implementation of the paper [Two in One Go: Single-stage Emotion Recognition with Decoupled Subject-context Transformer (ACM MM 2024)](https://arxiv.org/abs/2404.17205).
+This repository contains the official implementation of the paper [Two in One Go: Single-stage Emotion Recognition with Decoupled Subject-context Transformer (ACM MM 2024)](https://arxiv.org/abs/2404.17205).
 
 
 ## Introduction
@@ -10,14 +10,6 @@ emotion classification.
 
 ![introduction](./imgs/intro.jpg)
 
-<!-- Abstract. Emotion recognition aims to discern the emotional state of subjects within an image, relying on subject-centric and contextual visual cues. Current approaches typically follow a two-stage pipeline: first
-localize subjects by off-the-shelf detectors, then perform emotion classification through the late fusion of subject and context features. However, the complicated paradigm suffers from disjoint training stages and limited fine-grained interaction between subject-context
-elements. To address the challenge, we present a single-stage emotion recognition approach, employing a Decoupled Subject-Context Transformer (DSCT), for simultaneous subject localization and
-emotion classification. Rather than compartmentalizing training stages, we jointly leverage box and emotion signals as supervision to enrich subject-centric feature learning. Furthermore, we introduce DSCT to facilitate interactions between fine-grained subjectcontext
-cues in a “decouple-then-fuse” manner. The decoupled
-query tokens—subject queries and context queries—gradually intertwine across layers within DSCT, during which spatial and semantic relations are exploited and aggregated. We evaluate our single-stage framework on two widely used context-aware emotion recognition datasets, CAER-S and EMOTIC. Our approach surpasses two-stage alternatives with fewer parameter numbers, achieving a 3.39% accuracy
-improvement and a 6.46% average precision gain on CAER-S
-and EMOTIC datasets, respectively. -->
 
 ## License
 
@@ -25,13 +17,17 @@ This project is released under the [Apache 2.0 license](./LICENSE).
 
 
 ## Installation
-Please refer to the installation on [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
+Please refer to the installation instructions for [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
 
 ### Requirements
 
-* Linux, CUDA>=9.2, 5.4<=GCC<=9.5
-* Python>=3.7
-* PyTorch>=1.5.1, torchvision>=0.6.1
+* Linux
+* CUDA >= 9.2
+* GCC: 5.4 <= GCC <= 9.5
+* Python >= 3.7
+* PyTorch >= 1.5.1
+* torchvision >= 0.6.1
+
 
 ### Steps for Reference
 Clone the repo:
@@ -40,15 +36,13 @@ git clone git@github.com:Sampson-Lee/DSCT.git
 cd DSCT
 ```
 
-Create the environment:
+Create and activate the environment:
 ```bash
 conda create -n dsct python=3.10 pip
-```
-Activate the environment:
-```bash
 conda activate dsct 
 ```
-Install pytorch following instructions [here](https://pytorch.org/):
+
+Install PyTorch and dependencies:
 ```bash
 pip install torch torchvision torchaudio
 pip install -r requirements.txt
@@ -59,7 +53,8 @@ Compile CUDA operators:
 cd ./models/ops
 sh ./make.sh
 ```
-After compiling, test the operators (should see all checking is True until CUDA is out of memory):
+
+Test the operators (ensure all checks pass until CUDA runs out of memory):
 ```bash
 python test.py
 ```    
@@ -69,9 +64,9 @@ python test.py
 ### Dataset
 Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S dataset](https://caer-dataset.github.io/). 
 
-We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts.
+We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts in `./datasets`.
 
-We expect a directory tree like
+Ensure your directory tree follows this structure:
 ```
 emotic
 └── images
@@ -108,10 +103,29 @@ caer
 ```
 
 ### Running
-Please place the [pretrained weights of deformable detr](https://drive.google.com/file/d/1nDWZWHuRwtwGden77NLM9JoWe-YisJnA/view?usp=sharing) in the directory.
+Please place the [pretrained weights of deformable detr](https://drive.google.com/file/d/1nDWZWHuRwtwGden77NLM9JoWe-YisJnA/view?usp=sharing) in the working directory.
 
 Then, follow `run.sh` to conduct training, testing, or visualization. 
 
+Below is an example command:
+```
+YOUR_DATA_PATH=/home/lxp/data/emotic
+CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
+    --nproc_per_node=1 \
+    --master_port=29507 \
+    --use_env main.py \
+    --dataset_file=emotic \   # Choose the dataset between emotic and caer
+    --binary_flag=1 \         # Set 1 for multi-label tasks; 0 for multi-class tasks
+    --detr=deformable_detr_dsct \
+    --model=deformable_transformer_dsct \
+    --batch_size=1 \          # Adjust the batch size
+    --cls_loss_coef=5 \
+    --data_path=$YOUR_DATA_PATH \
+    --output_dir=$YOUR_DATA_PATH/checkpoints \
+    --epochs=50 \
+    --lr_drop=40 \
+    --num_queries=4;          # Adjust the number of queries
+```
 
 ## Citation
 ```
