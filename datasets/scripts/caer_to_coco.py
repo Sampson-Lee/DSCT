@@ -101,31 +101,31 @@ class MyData2COCO:
 if __name__ == '__main__':
     from IPython import embed
     FACE_to_COCO = MyData2COCO()
-    file_type = 'train'
-    data_path = '/data1/xinpeng/CAER_S/' + file_type
-    input_file = '/data1/xinpeng/CAER_S/' + file_type+'.csv'
-    output_file = '/data1/xinpeng/CAER_S/' + file_type+'.json'
-    # train_instance = FACE_to_COCO.to_coco(input_file, data_path)
-    # FACE_to_COCO.save_coco_json(train_instance, output_file)
+    file_type = 'val'
+    data_path = '/data/xinpeng/CAER_S/' + file_type
+    input_file = '/data/xinpeng/CAER_S/' + file_type+'.csv'
+    output_file = '/data/xinpeng/CAER_S/' + file_type+'.json'
+    train_instance = FACE_to_COCO.to_coco(input_file, data_path)
+    FACE_to_COCO.save_coco_json(train_instance, output_file)
 
-    dataset = torchvision.datasets.CocoDetection(data_path, output_file)
-    for img, target in dataset:
-        img = np.array(img)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        for ann in target:
-            class_idx = ann["category_id"]
-            print(dataset.coco.imgs[target[0]["image_id"]]['file_name'])
-            box = ann["bbox"]
-            bbox = list(map(int,box))
-            bbox = np.array([
-                [bbox[0], bbox[1]],
-                [bbox[0]+ bbox[2], bbox[1]],
-                [bbox[0]+ bbox[2], bbox[1]+bbox[3]],
-                [bbox[0], bbox[1]+ bbox[3]],
-                ])
-            bbox = bbox.reshape((4, 2))
-            cv2.polylines(img, [bbox], True, (0, 255, 0), 2)
-            cv2.putText(img, category_list[class_idx], (bbox[3][0], bbox[3][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
+    # dataset = torchvision.datasets.CocoDetection(data_path, output_file)
+    # for img, target in dataset:
+    #     img = np.array(img)
+    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #     for ann in target:
+    #         class_idx = ann["category_id"]
+    #         print(dataset.coco.imgs[target[0]["image_id"]]['file_name'])
+    #         box = ann["bbox"]
+    #         bbox = list(map(int,box))
+    #         bbox = np.array([
+    #             [bbox[0], bbox[1]],
+    #             [bbox[0]+ bbox[2], bbox[1]],
+    #             [bbox[0]+ bbox[2], bbox[1]+bbox[3]],
+    #             [bbox[0], bbox[1]+ bbox[3]],
+    #             ])
+    #         bbox = bbox.reshape((4, 2))
+    #         cv2.polylines(img, [bbox], True, (0, 255, 0), 2)
+    #         cv2.putText(img, category_list[class_idx], (bbox[3][0], bbox[3][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
             
-        cv2.imwrite("test.jpg", img)
+    #     cv2.imwrite("test.jpg", img)
         # exit()
