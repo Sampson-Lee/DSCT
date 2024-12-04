@@ -66,7 +66,7 @@ Please download [EMOTIC dataset](https://github.com/rkosti/emotic) and [CAER-S d
 
 We provided the coco-format annotations, i.e. `emotic_{train, val, test}_bi.json` and `caer_{train, test}.json`, and preprocessing scripts in `./datasets`.
 
-Modify the dataset code or directy. Here is the directory tree I am following:
+Modify the dataset code or directory. Here is the directory tree I am following:
 ```
 emotic
 └── images
