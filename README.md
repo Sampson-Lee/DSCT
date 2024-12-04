@@ -128,7 +128,7 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 ```
 
 ## Citation
-If you find this project is helpful, please cite our paper and star our reposity.
+If you find this project is helpful, please cite our paper and star our reposity. Many thanks.
 
 ```
 @inproceedings{li2024two,
