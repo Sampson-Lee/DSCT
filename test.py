@@ -227,6 +227,8 @@ def infer(dataset, model, postprocessors, device, args):
     gt_list = []; pred_list = []
     gt_list_b = []; pred_list_b = []
     for orig_image, target in dataset:
+        
+        # evaluate the image with specific face number when face_num is not 0
         if 0<args.face_num<5:
             print('face number is', args.face_num)
             if len(target) != args.face_num: continue
@@ -238,7 +240,6 @@ def infer(dataset, model, postprocessors, device, args):
         img_name = os.path.join(args.data_path, dataset.coco.imgs[target[0]["image_id"]]['file_name'])
         orig_image = Image.open(img_name)
 
-        # print("processing...{}".format(img_name))
         w, h = orig_image.size
         transform = make_face_transforms("val")
         dummy_target = {
@@ -255,18 +256,14 @@ def infer(dataset, model, postprocessors, device, args):
         duration += infer_time
 
         if args.binary_flag:
-            # probas = outputs['pred_logits'][0].sigmoid().cpu() # (num_query, emo_class)
             probas = outputs['pred_logits'][0,:,:-1].sigmoid().cpu() # (num_query, emo_class)
         else:
-            # probas = outputs['pred_logits'][0].softmax(-1).cpu() # (num_query, emo_class)
             probas = outputs['pred_logits'][0,:,:-1].softmax(-1).cpu() # (num_query, emo_class)
 
         outputs["pred_boxes"] = outputs["pred_boxes"].cpu()
         bboxes = rescale_bboxes(outputs['pred_boxes'][0].cpu(), orig_image.size) # (num_query, 4)
 
         dets = torch.cat([bboxes, probas.mean(dim=-1).unsqueeze(-1)], dim=1)
-        # dets = torch.cat([bboxes, probas.max(dim=-1)[0].unsqueeze(-1)], dim=1)
-        # dets = torch.cat([bboxes, 1-outputs['pred_logits'][0,:,-1].sigmoid().cpu().unsqueeze(-1)], dim=1)
         keep = nms(dets.numpy(), 0.01)
         probas = probas[keep]; bboxes = bboxes[keep]
         
@@ -303,10 +300,10 @@ def infer(dataset, model, postprocessors, device, args):
     print('mAP', mAP)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('DETR training and evaluation script', parents=[get_args_parser()])
+    parser = argparse.ArgumentParser('DSCT training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
-    if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    # if args.output_dir:
+        # Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     device = torch.device(args.device)
 
@@ -319,4 +316,3 @@ if __name__ == "__main__":
     dataset = torchvision.datasets.CocoDetection(args.data_path, args.json_path)
 
     infer(dataset, model, postprocessors, device, args)
-    # embed()

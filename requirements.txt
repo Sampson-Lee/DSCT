@@ -4,3 +4,5 @@ cython
 scipy
 ipython
 scikit-learn
+opencv-python
+seaborn

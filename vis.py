@@ -454,13 +454,6 @@ def infer(dataset, model, postprocessors, device, args):
         else: pass
 
         img_name = os.path.join(args.data_path, dataset.coco.imgs[target[0]["image_id"]]['file_name'])
-        # img_name = '/data1/xinpeng/EMOTIC/images/mscoco/images/COCO_train2014_000000094388.jpg'
-        # img_name = '/data1/xinpeng/EMOTIC/images/emodb_small/images/9d05mol0ji5qlmawoc.jpg'
-        # img_name = '/data1/xinpeng/EMOTIC/images/emodb_small/images/b98lhbcesn2m5in4wn.jpg'
-        # img_name = '/data1/xinpeng/EMOTIC/images/emodb_small/images/dyxwbrrg5gvylxzhec.jpg'
-        # img_name = '/data1/xinpeng/EMOTIC/images/ade20k/images/sun_aaflptztmjujrsgx.jpg'
-        if img_name != '/data1/xinpeng/EMOTIC/images/emodb_small/images/b98lhbcesn2m5in4wn.jpg': continue
-
         orig_image = Image.open(img_name)
 
         plot_image = np.array(orig_image)
@@ -481,18 +474,17 @@ def infer(dataset, model, postprocessors, device, args):
         outputs = model(image)
 
         if args.binary_flag:
-            probas = outputs['pred_logits'].sigmoid()[0].cpu() # (num_query, emo_class)
+            probas = outputs['pred_logits'][0,:,:-1].sigmoid().cpu() # (num_query, emo_class)
         else:
             probas = outputs['pred_logits'][0,:,:-1].softmax(-1).cpu() # (num_query, emo_class)
 
         outputs["pred_boxes"] = outputs["pred_boxes"].cpu()
         bboxes = rescale_bboxes(outputs['pred_boxes'][0].cpu(), orig_image.size) # (num_query, 4)
         bboxes_plot = rescale_bboxes(outputs['pred_boxes'][0].cpu(), (plot_image.shape[1], plot_image.shape[0])) # (num_query, 4)
-        # dets = torch.cat([bboxes, torch.topk(probas, 8)[0].mean(-1).unsqueeze(-1)], dim=1)
-        # dets = torch.cat([bboxes, probas.max(dim=-1)[0].unsqueeze(-1)], dim=1)
         dets = torch.cat([bboxes, probas.mean(dim=-1).unsqueeze(-1)], dim=1)
 
-        keep = nms(dets.numpy(), 0.01)
+        ###### leverage nms to remove duplicate ######
+        # keep = nms(dets.numpy(), 0.01)
         # keep = list(range(dets.shape[0]))
         # keep = torch.argsort(probas.mean(dim=-1), descending=True)
         # keep = [0,1,2,3]
@@ -516,12 +508,12 @@ def infer(dataset, model, postprocessors, device, args):
         #         plot_image = plot_points(plot_image, [face_samples[keep_value]], [face_points[keep_value]], color_list[keep_idx], context_samples=context_samples, context_points=context_points_se[:50, keep_value])
 
         # for keep_idx, keep_value in enumerate(keep):
-        #     plot_image = plot_points(plot_image, [face_samples[keep_value]], [face_points[keep_value]], color_list[keep_idx])
-        #     break
+            # plot_image = plot_points(plot_image, [face_samples[keep_value]], [face_points[keep_value]], color_list[keep_idx])
             # plot_image = plot_points(plot_image, [face_samples[keep_value]], [face_points[keep_value]], color_list[keep_value])
             # plot_image = plot_result(plot_image, [bboxes_plot[keep_value].data.numpy()], color_list[keep_value]) # (B, G, R)
         
         # keep = keep[:len(target)] if len(keep)>len(target) else keep + [keep[0]] * (len(target) - len(keep))
+        
         for ann_idx, ann in enumerate(target):
             img_bbox = ann["bbox"]
             img_bbox = [img_bbox[0], img_bbox[1], img_bbox[0]+img_bbox[2], img_bbox[1]+img_bbox[3]]
@@ -539,42 +531,49 @@ def infer(dataset, model, postprocessors, device, args):
                 img_class_b = np.zeros(len(emo_list))
                 img_class_b[img_class] = 1
                 img_class = [img_class]
+            
+            ###### plot the ground truth ######
+            # gt_list.append(img_class[0])
+            # gt_list_b.append(np.array(img_class_b))
+            # plot_image = plot_result(plot_image, [img_bbox_plot], probas=[[1.0]*len(img_class)], classes=[img_class,], emo_list=emo_list, color=color_list[ann_idx])
+            
+            ##### plot the prediction ####
+            idx_sele = face_matching(img_bbox, bboxes)
+            prob_sele = probas[idx_sele].data.numpy()
 
-        #     gt_list.append(img_class[0])
-        #     gt_list_b.append(np.array(img_class_b))
-            plot_image = plot_result(plot_image, [img_bbox_plot], probas=[[1.0]*len(img_class)], classes=[img_class,], emo_list=emo_list, color=color_list[ann_idx]) # (B, G, R)
-
-        #     idx_sele = face_matching(img_bbox, bboxes)
-        #     prob_sele = probas[idx_sele].data.numpy()
-
-        #     prob_related, cls_related = prob_sele.max(), prob_sele.argmax()
-        #     pred_list.append(cls_related)
-        #     prob_related, cls_related = [prob_related, ], [cls_related, ]
-        #     pred_list_b.append(prob_sele)
-        #     if args.binary_flag:
-        #         # print(prob_sele)
-        #         # cls_related = np.where(prob_sele[:-1]>0.2)[0]
-        #         cls_related = np.argsort(prob_sele[:-1])[::-1][:6]
-        #         prob_related = prob_sele[cls_related]
-
-        #     plot_image = plot_points(plot_image, face_samples[idx_sele], face_points[idx_sele], context_samples_list[idx_sele], context_points[idx_sele], relevance_values[idx_sele])
+            prob_related, cls_related = prob_sele.max(), prob_sele.argmax()
+            pred_list.append(cls_related)
+            prob_related, cls_related = [prob_related, ], [cls_related, ]
+            pred_list_b.append(prob_sele)
+            if args.binary_flag:
+                # cls_related = np.where(prob_sele[:-1]>0.2)[0]
+                cls_related = np.argsort(prob_sele[:-1])[::-1][:6]
+                prob_related = prob_sele[cls_related]
+            plot_image = plot_result(plot_image, [bboxes_plot[idx_sele].data.numpy()], probas=[prob_related], classes=[cls_related], emo_list=emo_list, color=color_list[ann_idx])
+            
+            ##### plot the reference points #####
+            # plot_image = plot_points(plot_image, face_samples[idx_sele], face_points[idx_sele], context_samples_list[idx_sele], context_points[idx_sele], relevance_values[idx_sele])
             # plot_image = plot_points(plot_image, face_samples[idx_sele], face_points[idx_sele], color_list[ann_idx])
-            # plot_image = plot_result(plot_image, [bboxes_plot[idx_sele].data.numpy()], probas=[prob_related], classes=[cls_related], emo_list=emo_list, color=color_list[ann_idx]) # (B, G, R)
             
             # if(cls_related != img_class): print(img_name.replace('Val', 'log').replace('Data', 'log'))
+
+        ##### plot the trajectory #####
         # if face_point_tracks is None: face_point_tracks = get_trajectory(model, image, target, device, keep, args)
         # plot_image = plot_trajectory(plot_image, face_point_tracks)
         # plot_fea(image, feature_maps.copy(), img_save_path)
 
-        path = 'log_deformable_detr_gt'
+        ##### save the plotted image #####
+        path = 'visualization'
         img_save_path = img_name.replace('Val', path).replace('Data', path).replace('images', path).replace('test', path)
         if not os.path.exists(os.path.dirname(img_save_path)):
             os.makedirs(os.path.dirname(img_save_path))
         print(img_save_path)
         cv2.imwrite(img_save_path, plot_image)
-        # get_tsne(model, img_save_path)
         embed()
-        
+
+        ##### plot the tsne #####
+        # get_tsne(model, img_save_path)
+
         end_t = time.perf_counter()
         infer_time = end_t - start_t
         duration += infer_time
@@ -588,15 +587,12 @@ def infer(dataset, model, postprocessors, device, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('DETR training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
-    if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     device = torch.device(args.device)
 
     model, _, postprocessors = build_model(args)
     if args.resume:
         checkpoint = torch.load(args.resume, map_location='cpu')
-        embed()
         model.load_state_dict(checkpoint['model'], strict=True)
     model.to(device)
 
