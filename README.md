@@ -107,7 +107,7 @@ Please place the [pretrained weights of deformable detr](https://drive.google.co
 
 Then, follow `run.sh` to conduct training, testing, or visualization. 
 
-Below is an example command:
+Below is an explained example command:
 ```
 YOUR_DATA_PATH=/home/lxp/data/emotic
 CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
@@ -116,15 +116,16 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
     --use_env main.py \
     --dataset_file=emotic \   # Choose the dataset between emotic and caer
     --binary_flag=1 \         # Set 1 for multi-label tasks; 0 for multi-class tasks
+    --backbone=resnet50 \     # Select resnet50 or resnet101
     --detr=deformable_detr_dsct \
     --model=deformable_transformer_dsct \
     --batch_size=1 \          # Adjust the batch size
-    --cls_loss_coef=5 \
+    --cls_loss_coef=5 \       # Determine the coefficient of the classification loss
     --data_path=$YOUR_DATA_PATH \
     --output_dir=$YOUR_DATA_PATH/checkpoints \
     --epochs=50 \
     --lr_drop=40 \
-    --num_queries=4;          # Adjust the number of queries
+    --num_queries=4;          # Configure the number of queries
 ```
 
 ## Citation

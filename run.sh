@@ -1,20 +1,21 @@
-# #####emotic training scripts #####
-YOUR_DATA_PATH=/home/lxp/data/emotic
-CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
-    --nproc_per_node=1 \
-    --master_port=29507 \
-    --use_env main.py \
-    --dataset_file=emotic \
-    --binary_flag=1 \
-    --detr=deformable_detr_dsct \
-    --model=deformable_transformer_dsct \
-    --batch_size=4 \
-    --cls_loss_coef=5 \
-    --data_path=$YOUR_DATA_PATH \
-    --output_dir=$YOUR_DATA_PATH/checkpoints \
-    --epochs=50 \
-    --lr_drop=40 \
-    --num_queries=4;
+# ##### emotic training scripts #####
+# YOUR_DATA_PATH=/home/lxp/data/emotic
+# CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
+#     --nproc_per_node=1 \
+#     --master_port=29507 \
+#     --use_env main.py \
+#     --dataset_file=emotic \ 
+#     --backbone=resnet50 \ 
+#     --binary_flag=1 \     
+#     --detr=deformable_detr_dsct \
+#     --model=deformable_transformer_dsct \
+#     --batch_size=4 \
+#     --cls_loss_coef=5 \
+#     --data_path=$YOUR_DATA_PATH \
+#     --output_dir=$YOUR_DATA_PATH/checkpoints \
+#     --epochs=50 \
+#     --lr_drop=40 \
+#     --num_queries=4;
 
 # ##### emotic testing scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/emotic
@@ -56,8 +57,8 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
         --cls_loss_coef=5 \
         --data_path=$YOUR_DATA_PATH \
         --output_dir=$YOUR_DATA_PATH/checkpoints \
-        --epochs=5 \
-        --lr_drop=4 \
+        --epochs=50 \
+        --lr_drop=40 \
         --num_queries=9; \
 
 # ##### caer-s testing scripts #####
@@ -72,7 +73,6 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --data_path=$YOUR_DATA_PATH/test \
 #         --json_path=./datasets/annotations/caer_test.json \
 #         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
-# done
 
 # ##### caer-s visualization scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/CAER_S
