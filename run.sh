@@ -15,7 +15,8 @@
 #     --output_dir=$YOUR_DATA_PATH/checkpoints \
 #     --epochs=50 \
 #     --lr_drop=40 \
-#     --num_queries=4;
+#     --num_queries=4 \
+#     --pretrained_weights=./r50_deformable_detr-checkpoint.pth \
 
 # ##### emotic testing scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/emotic
@@ -28,7 +29,7 @@
 #         --binary_flag=1 \
 #         --data_path=$YOUR_DATA_PATH/images \
 #         --json_path=./datasets/annotations/emotic_test_bi.json \
-#         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
+#         --pretrained_weights=$YOUR_MODEL_PATH/checkpoint.pth;
 
 # ##### emotic visualization scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/emotic
@@ -41,7 +42,7 @@
 #         --detr=deformable_detr_dsct \
 #         --data_path=$YOUR_DATA_PATH/images \
 #         --json_path=./datasets/annotations/emotic_test_bi.json \
-#         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
+#         --pretrained_weights=$YOUR_MODEL_PATH/checkpoint.pth;
 
 ##### caer-s training scripts #####
 YOUR_DATA_PATH=/home/lxp/data/CAER_S
@@ -59,7 +60,9 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
         --output_dir=$YOUR_DATA_PATH/checkpoints \
         --epochs=50 \
         --lr_drop=40 \
-        --num_queries=9; \
+        --num_queries=9 \
+        --pretrained_weights=./r50_deformable_detr-checkpoint.pth \
+        --resume=/home/lxp/data/CAER_S/checkpoints/checkpoint0017.pth \
 
 # ##### caer-s testing scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/CAER_S
@@ -72,7 +75,7 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --binary_flag=0 \
 #         --data_path=$YOUR_DATA_PATH/test \
 #         --json_path=./datasets/annotations/caer_test.json \
-#         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
+#         --pretrained_weights=$YOUR_MODEL_PATH/checkpoint.pth;
 
 # ##### caer-s visualization scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/CAER_S
@@ -85,4 +88,4 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 #         --detr=deformable_detr_dsct \
 #         --data_path=$YOUR_DATA_PATH/test \
 #         --json_path=./datasets/annotations/caer_test.json \
-#         --resume=$YOUR_MODEL_PATH/checkpoint.pth;
+#         --pretrained_weights=$YOUR_MODEL_PATH/checkpoint.pth;

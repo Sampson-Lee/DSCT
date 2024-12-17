@@ -242,12 +242,20 @@ def main(args):
         model_without_ddp.detr.load_state_dict(checkpoint['model'])
 
     output_dir = Path(args.output_dir)
+
+    if args.pretrained_weights:
+        print(f"##### loading the weights from {args.pretrained_weights} #####\n")
+        checkpoint = torch.load(args.pretrained_weights, map_location='cpu')
+        model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
+
     if args.resume:
         if args.resume.startswith('https'):
             checkpoint = torch.hub.load_state_dict_from_url(
                 args.resume, map_location='cpu', check_hash=True)
         else:
             checkpoint = torch.load(args.resume, map_location='cpu')
+        print(f"##### resuming the training from epoch {checkpoint['epoch']}+1 #####\n")
+        
         missing_keys, unexpected_keys = model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
         unexpected_keys = [k for k in unexpected_keys if not (k.endswith('total_params') or k.endswith('total_ops'))]
         if len(missing_keys) > 0:
@@ -276,10 +284,6 @@ def main(args):
             test_stats, coco_evaluator = evaluate(
                 model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
             )
-
-    if args.pretrained_weights:
-        checkpoint = torch.load(args.pretrained_weights, map_location='cpu')
-        model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
 
     if args.eval:
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,

@@ -17,7 +17,9 @@ This project is released under the [Apache 2.0 license](./LICENSE).
 
 
 ## Installation
-Please refer to the installation instructions for [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
+
+### Acknowledgement
+The project is based on [deformable_detr](https://github.com/fundamentalvision/Deformable-DETR).
 
 ### Requirements
 
@@ -29,7 +31,7 @@ Please refer to the installation instructions for [deformable_detr](https://gith
 * torchvision >= 0.6.1
 
 
-### Steps for Reference
+### Installation
 Clone the repo:
 ```bash
 git clone git@github.com:Sampson-Lee/DSCT.git
@@ -129,7 +131,7 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
 ```
 
 ## Citation
-If you find this project is helpful, please cite our paper and star our reposity. Many thanks.
+If you find this project is helpful, please consider cite our paper and star our reposity. Many thanks.
 
 ```
 @inproceedings{li2024two,

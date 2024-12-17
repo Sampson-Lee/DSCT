@@ -308,8 +308,8 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     model, _, postprocessors = build_model(args)
-    if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
+    if args.pretrained_weights:
+        checkpoint = torch.load(args.pretrained_weights, map_location='cpu')
         model.load_state_dict(checkpoint['model'], strict=True)
     model.to(device)
 
