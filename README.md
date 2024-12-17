@@ -127,7 +127,8 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
     --output_dir=$YOUR_DATA_PATH/checkpoints \
     --epochs=50 \
     --lr_drop=40 \
-    --num_queries=4;          # Configure the number of queries
+    --num_queries=4 \         # Configure the number of queries
+    --pretrained_weights=./r50_deformable_detr-checkpoint.pth \ # leverage the pretrained weights of deformable detr
 ```
 
 ## Citation

@@ -62,7 +62,6 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
         --lr_drop=40 \
         --num_queries=9 \
         --pretrained_weights=./r50_deformable_detr-checkpoint.pth \
-        --resume=/home/lxp/data/CAER_S/checkpoints/checkpoint0017.pth \
 
 # ##### caer-s testing scripts #####
 # YOUR_DATA_PATH=/home/lxp/data/CAER_S
