@@ -336,7 +336,7 @@ def get_args_parser():
     # Model parameters
     parser.add_argument('--frozen_weights', type=str, default=None,
                         help="Segmentation Only. If set, only the mask head will be trained")
-    parser.add_argument('--pretrained_weights', type=str, default='/home/xinpeng/Deformable-DETR-main/r50_deformable_detr-checkpoint.pth', 
+    parser.add_argument('--pretrained_weights', type=str, default=None, 
                         help="Path to the pretrained model.")
 
     # * Backbone
@@ -591,8 +591,8 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     model, _, postprocessors = build_model(args)
-    if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
+    if args.pretrained_weights:
+        checkpoint = torch.load(args.pretrained_weights, map_location='cpu')
         model.load_state_dict(checkpoint['model'], strict=True)
     model.to(device)
 

@@ -124,7 +124,7 @@ def get_args_parser():
     # Model parameters
     parser.add_argument('--frozen_weights', type=str, default=None,
                         help="Segmentation Only. If set, only the mask head will be trained")
-    parser.add_argument('--pretrained_weights', type=str, default='/home/xinpeng/Deformable-DETR-main/r50_deformable_detr-checkpoint.pth', 
+    parser.add_argument('--pretrained_weights', type=str, default=None, 
                         help="Path to the pretrained model.")
 
     # * Backbone
