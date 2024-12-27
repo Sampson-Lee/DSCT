@@ -28,6 +28,7 @@ from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
 
 import copy
 from sklearn.metrics import accuracy_score, confusion_matrix, average_precision_score
+from IPython import embed
 
 def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
@@ -253,17 +254,15 @@ class SetCriterion(nn.Module):
 
         else:
             target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-            target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
+            target_classes = torch.full(src_logits.shape[:2], self.num_classes-1, dtype=torch.int64, device=src_logits.device)
             target_classes[idx] = target_classes_o
-            
-            # loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
-            
-            target_classes_onehot = torch.zeros([src_logits.shape[0], src_logits.shape[1], src_logits.shape[2] + 1],
+
+            target_classes_onehot = torch.zeros([src_logits.shape[0], src_logits.shape[1], src_logits.shape[2]],
                                                 dtype=src_logits.dtype, layout=src_logits.layout, device=src_logits.device)
             target_classes_onehot.scatter_(2, target_classes.unsqueeze(-1), 1)
-
-            target_classes_onehot = target_classes_onehot[:,:,:-1]
-            loss_ce = sigmoid_focal_loss(src_logits, target_classes_onehot, num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
+            
+            # loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
+            loss_ce = sigmoid_focal_loss(src_logits[:,:,:-1], target_classes_onehot[:,:,:-1], num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
 
         losses = {'loss_ce': loss_ce}
 
