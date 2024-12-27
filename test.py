@@ -226,9 +226,12 @@ def infer(dataset, model, postprocessors, device, args):
     duration = 0
     gt_list = []; pred_list = []
     gt_list_b = []; pred_list_b = []
-    for orig_image, target in dataset:
+    cnt = 0
+    for orig_image, target in tqdm(dataset):
+        cnt += 1; 
+        # if cnt == 20: break
         
-        # evaluate the image with specific face number when face_num is not 0
+        ###### evaluate the image with specific face number when face_num is not 0 ######
         if 0<args.face_num<5:
             print('face number is', args.face_num)
             if len(target) != args.face_num: continue
@@ -264,8 +267,10 @@ def infer(dataset, model, postprocessors, device, args):
         bboxes = rescale_bboxes(outputs['pred_boxes'][0].cpu(), orig_image.size) # (num_query, 4)
 
         dets = torch.cat([bboxes, probas.mean(dim=-1).unsqueeze(-1)], dim=1)
-        keep = nms(dets.numpy(), 0.01)
-        probas = probas[keep]; bboxes = bboxes[keep]
+        
+        ###### leverage nms to remove duplicate output ######
+        # keep = nms(dets.numpy(), 0.01)
+        # probas = probas[keep]; bboxes = bboxes[keep]
         
         for ann_idx, ann in enumerate(target):
             img_bbox = ann["bbox"]
@@ -288,7 +293,7 @@ def infer(dataset, model, postprocessors, device, args):
             prob_sele = probas[idx_sele].data.numpy()
 
             prob_related, cls_related = prob_sele.max(), prob_sele.argmax()
-            pred_list.append(cls_related)
+            pred_list.append(int(cls_related))
             prob_related, cls_related = [prob_related, ], [cls_related, ]
             pred_list_b.append(prob_sele)
 

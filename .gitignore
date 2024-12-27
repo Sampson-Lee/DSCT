@@ -6,3 +6,4 @@
 *.pth
 models/ops/build
 models/ops/dist
+*output*.txt
