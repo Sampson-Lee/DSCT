@@ -159,7 +159,9 @@ def get_args_parser():
     parser.add_argument('--noise', default=0.2, type=float)
     parser.add_argument('--model', default='deformable_transformer', type=str)
     parser.add_argument('--detr', default='deformable_detr', type=str)
-
+    parser.add_argument("--dec_n_sp", type=int, default=100)
+    parser.add_argument('--dec_n_sm', default=50, type=int)
+    
     # * Segmentation
     parser.add_argument('--masks', action='store_true',
                         help="Train segmentation head if the flag is provided")
