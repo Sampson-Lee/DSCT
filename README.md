@@ -131,6 +131,8 @@ CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch \
     --pretrained_weights=./r50_deformable_detr-checkpoint.pth \ # leverage the pretrained weights of deformable detr
 ```
 
+We conducted the experiments on a single NVIDIA GeForce RTX 4090 GPU, using the configuration specified in the provided `run.sh` file, which includes 50 epochs and a batch size of 4. The results remain competitive, achieving 89.19% on the CAER-S dataset and 36.21% on the Emotic dataset. The pretrained weights are available for download [here](https://drive.google.com/drive/folders/12PqXjm7XMuVq-rNjyXM9mbSWVHiOGJtL?usp=drive_link).
+
 ## Citation
 If you find this project helpful, please consider citing our paper and starring our repository.
 
