@@ -4,9 +4,9 @@
 #     --nproc_per_node=1 \
 #     --master_port=29507 \
 #     --use_env main.py \
-#     --dataset_file=emotic \ 
-#     --backbone=resnet50 \ 
-#     --binary_flag=1 \     
+#     --dataset_file=emotic \
+#     --backbone=resnet50 \
+#     --binary_flag=1 \
 #     --detr=deformable_detr_dsct \
 #     --model=deformable_transformer_dsct \
 #     --batch_size=4 \
