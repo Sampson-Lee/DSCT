@@ -88,9 +88,11 @@ def get_args_parser():
     parser.add_argument('--enc_n_points', default=4, type=int)
     parser.add_argument('--interpolate_factor', default=0.5, type=float)
     parser.add_argument('--noise', default=0.2, type=float)
-    parser.add_argument('--model', default='deformable_transformer', type=str)
-    parser.add_argument('--detr', default='deformable_detr', type=str)
+    parser.add_argument('--model', default='deformable_transformer_dsct', type=str)
+    parser.add_argument('--detr', default='deformable_detr_dsct', type=str)
     parser.add_argument('--modality', default='', type=str, nargs="+")
+    parser.add_argument("--dec_n_sp", type=int, default=100)
+    parser.add_argument('--dec_n_sm', default=50, type=int)
 
     # * Segmentation
     parser.add_argument('--masks', action='store_true',
@@ -207,7 +209,7 @@ def main(args):
         },
         {
             "params": [p for n, p in model_without_ddp.named_parameters() if match_name_keywords(n, args.lr_backbone_names) and p.requires_grad],
-            "lr": args.lr_backbone,
+            "lr": args.lr * 0.1,
         },
         {
             "params": [p for n, p in model_without_ddp.named_parameters() if match_name_keywords(n, args.lr_linear_proj_names) and p.requires_grad],
