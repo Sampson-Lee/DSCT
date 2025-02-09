@@ -25,7 +25,8 @@ class DeformableTransformer(nn.Module):
     def __init__(self, d_model=256, nhead=8,
                  num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=1024, dropout=0.1,
                  activation="relu", return_intermediate_dec=False,
-                 num_feature_levels=4, dec_n_points=4,  enc_n_points=4,
+                 num_feature_levels=4, dec_n_points=4, 
+                 enc_n_points=4, dec_n_sp=100, dec_n_sm=50,
                  two_stage=False, two_stage_num_proposals=300):
         super().__init__()
 
@@ -41,7 +42,7 @@ class DeformableTransformer(nn.Module):
 
         decoder_layer = DeformableTransformerDecoderLayer(d_model, dim_feedforward,
                                                           dropout, activation,
-                                                          num_feature_levels, nhead, dec_n_points)
+                                                          num_feature_levels, nhead, dec_n_points, dec_n_sp, dec_n_sm)
         self.decoder = DeformableTransformerDecoder(decoder_layer, num_decoder_layers, return_intermediate_dec)
 
         self.level_embed = nn.Parameter(torch.Tensor(num_feature_levels, d_model))
@@ -238,7 +239,7 @@ class DeformableTransformerEncoder(nn.Module):
 class DeformableTransformerDecoderLayer(nn.Module):
     def __init__(self, d_model=256, d_ffn=1024,
                  dropout=0.1, activation="relu",
-                 n_levels=4, n_heads=8, n_points=4):
+                 n_levels=4, n_heads=8, n_points=4, dec_n_sp=100, dec_n_sm=50):
         super().__init__()
 
         # cross attention 
@@ -259,6 +260,10 @@ class DeformableTransformerDecoderLayer(nn.Module):
         self.dropout4 = nn.Dropout(dropout)
         self.norm3 = nn.LayerNorm(d_model)
         
+        # spatial and semantic selection
+        self.dec_n_sp = dec_n_sp
+        self.dec_n_sm = dec_n_sm
+
         # for plot
         self.relevance_values = None
         self.context_points = None
@@ -290,6 +295,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
 
+        hs_context = tgt[:,:300,:]; hs_subject = tgt[:,300:,:]
+
         # fuse dsct embeddings and context embeddings
         self.face_points = reference_points[:,300:,:,:]
         reference_samples = self.cross_attn.sampling_locations
@@ -297,42 +304,39 @@ class DeformableTransformerDecoderLayer(nn.Module):
         self.context_points = reference_points[:,:300,:,:]
         self.context_samples = reference_samples[:,:300,:,:,:,:]
 
-        hs_context = tgt[:,:300,:]; hs_subject = tgt[:,300:,:]
+        if self.dec_n_sp>0 and self.dec_n_sm>0:
+            # # # spatial relation
+            d_sp = torch.cdist(reference_points[:,300:,0,:], reference_points[:,:300,0,:], p=2) # n_bs, n_sub, n_ctx
+            idx_sp = torch.argsort(d_sp, dim=-1, descending=False) # n_bs, n_sub, n_ctx
+            n_bs, n_sub, n_ctx = idx_sp.shape; _, _, n_dim = hs_context.shape
+            hs_context_spatial = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim) # n_bs, n_sub, n_ctx, n_dim
+            idx_sp_ex = idx_sp.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)
+            hs_context_spatial = torch.gather(hs_context_spatial, 2, idx_sp_ex) # n_bs, n_sub, n_ctx, n_dim
+            hs_context_spatial = hs_context_spatial[:,:,:self.dec_n_sp,:]
 
-        # spatial relation
-        d_sp = torch.cdist(reference_points[:,300:,0,:], reference_points[:,:300,0,:], p=2) # n_bs, n_sub, n_ctx
-        idx_sp = torch.argsort(d_sp, dim=-1, descending=False) # n_bs, n_sub, n_ctx
-        n_bs, n_sub, n_ctx = idx_sp.shape; _, _, n_dim = hs_context.shape
-        hs_context_spatial = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim) # n_bs, n_sub, n_ctx, n_dim
-        idx_sp_ex = idx_sp.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)
-        hs_context_spatial = torch.gather(hs_context_spatial, 2, idx_sp_ex) # n_bs, n_sub, n_ctx, n_dim
-        hs_context_spatial = hs_context_spatial[:,:,:100,:]
+            # # semantic relation
+            d_se = hs_subject@hs_context.permute(0,2,1)
+            idx_se = torch.argsort(d_se, dim=-1, descending=True)
+            n_bs, n_sub, n_ctx = idx_se.shape; _, _, n_dim = hs_context.shape
+            hs_context_semantic = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim)
+            idx_se_ex = idx_se.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)        
+            hs_context_semantic = torch.gather(hs_context_semantic, 2, idx_se_ex)
+            hs_context_semantic = hs_context_semantic[:,:,:self.dec_n_sm,:]
 
-        # semantic relation
-        d_se = hs_subject@hs_context.permute(0,2,1)
-        idx_se = torch.argsort(d_se, dim=-1, descending=True)
-        n_bs, n_sub, n_ctx = idx_se.shape; _, _, n_dim = hs_context.shape
-        hs_context_semantic = hs_context.unsqueeze(1).expand(n_bs, n_sub, n_ctx, n_dim)
-        idx_se_ex = idx_se.unsqueeze(-1).expand(n_bs, n_sub, n_ctx, n_dim)        
-        hs_context_semantic = torch.gather(hs_context_semantic, 2, idx_se_ex)
-        hs_context_semantic = hs_context_semantic[:,:,:50,:]
-
-        # relevance fusion
-        w_spatial = F.softmax(hs_subject.unsqueeze(-2)@hs_context_spatial.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
-        w_semantic = F.softmax(hs_subject.unsqueeze(-2)@hs_context_semantic.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
-        w_subject = F.softmax(hs_subject@hs_subject.permute(0,2,1), dim=-1) # n_bs, n_sub, n_sub
-
-        hs_subject = hs_subject + (w_spatial@hs_context_spatial).squeeze(2) + (w_semantic@hs_context_semantic).squeeze(2) + w_subject@hs_subject
-
-        tgt = torch.cat([hs_context, hs_subject], dim=1)
-        
-        self.relevance_values = w_spatial
-        idx_sp_m = torch.argsort(d_sp.mean(1), dim=-1, descending=False)
-        self.context_points_sp = torch.gather(reference_points[:,:300,0,:], 1, idx_sp_m.unsqueeze(-1).expand(-1, -1, 2))
-        idx_se_m = torch.argsort(d_se.mean(1), dim=-1, descending=False)
-        self.context_points_se = torch.gather(reference_points[:,:300,0,:], 1, idx_se_m.unsqueeze(-1).expand(-1, -1, 2))
+            # # relevance fusion
+            w_spatial = F.softmax(hs_subject.unsqueeze(-2)@hs_context_spatial.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
+            w_semantic = F.softmax(hs_subject.unsqueeze(-2)@hs_context_semantic.permute(0,1,3,2), dim=-1) # n_bs, n_sub, n_ctx
+            w_subject = F.softmax(hs_subject@hs_subject.permute(0,2,1), dim=-1) # n_bs, n_sub, n_sub
+            hs_subject = hs_subject + (w_spatial@hs_context_spatial).squeeze(2) + (w_semantic@hs_context_semantic).squeeze(2) + w_subject@hs_subject
+            
+            self.relevance_values = w_spatial
+            idx_sp_m = torch.argsort(d_sp.mean(1), dim=-1, descending=False)
+            self.context_points_sp = torch.gather(reference_points[:,:300,0,:], 1, idx_sp_m.unsqueeze(-1).expand(-1, -1, 2))
+            idx_se_m = torch.argsort(d_se.mean(1), dim=-1, descending=False)
+            self.context_points_se = torch.gather(reference_points[:,:300,0,:], 1, idx_se_m.unsqueeze(-1).expand(-1, -1, 2))
 
         # ffn
+        tgt = torch.cat([hs_context, hs_subject], dim=1)
         tgt = self.forward_ffn(tgt)
 
         return tgt
@@ -401,6 +405,8 @@ def build_deforamble_transformer(args):
         num_feature_levels=args.num_feature_levels,
         dec_n_points=args.dec_n_points,
         enc_n_points=args.enc_n_points,
+        dec_n_sp=args.dec_n_sp,
+        dec_n_sm=args.dec_n_sm,
         two_stage=args.two_stage,
         two_stage_num_proposals=args.num_queries)
 
